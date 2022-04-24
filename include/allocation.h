@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define PAGE_SIZE 0x1000
+#define NUMBER_OF_FRAMES 0x10000
 
 /*
  * A frame is just a contiguous portion of PAGE_SIZE bytes
@@ -17,7 +18,6 @@ struct page_frame {
 /*
  * This is the global list of free frames used by other functions
  */
-//struct page_frame* free_frames;
 
 
 /*
