@@ -8,12 +8,12 @@
 /*
  * This is the global list of free frames of the machine
  */
-struct page_frame* all_frames = NULL;
+struct page_frame all_frames[NUMBER_OF_FRAMES];
 
 /*
  * This is the global array of metadata of all the frames of the system
  */
-struct frame_metadata* frames_metadata = NULL;
+struct frame_metadata frames_metadata[NUMBER_OF_FRAMES];
 
 /*
  * This is the number of the first free page
@@ -25,11 +25,6 @@ pn_t first_free = 0;
 void init_frames(void)
 {
   size_t i;
-
-  all_frames = calloc(NUMBER_OF_FRAMES, PAGE_SIZE);
-  assert(all_frames != NULL);
-  frames_metadata = calloc(NUMBER_OF_FRAMES, sizeof(struct frame_metadata));
-  assert(frames_metadata != NULL);
 
   for (i=0; i<NUMBER_OF_FRAMES; i++)
   {
