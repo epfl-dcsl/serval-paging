@@ -45,6 +45,13 @@ pn_t pick_free_frame(void);
  */
 struct page_frame* allocate_frame(pn_t frame_number);
 
+/* 
+ * Function to call by a user to remove a freshly allocated page from the free
+ * list
+ * Because this function involves the free list, it cannot be proved
+ */
+void remove_allocated_page_from_free_list(pn_t frame_number);
+
 /*
  * Function to free a frame
  */
