@@ -9,7 +9,8 @@ int main(int argc, char* argv[])
   (void) argv;
 
   init_frames();
-  free_frame(allocate_frame());
 
-  printf("coucou\n");
+  pn_t frame_number = pick_free_frame();
+  allocate_frame(frame_number);
+  free_frame(frame_number);
 }

@@ -5,58 +5,82 @@
 
 
 /*
- * This is the global list of free frames used by other functions
+ * This is the global list of free frames of the machine
  */
-struct page_frame* free_frames = NULL;
+struct page_frame* all_frames = NULL;
+
+/*
+ * This is the global array of metadata of all the frames of the system
+ */
+struct frame_metadata* frames_metadata = NULL;
+
+/*
+ * This is the number of the first free page
+ * No proof is done on this value, it is only used as a hint by applications
+ */
+pn_t first_free = 0;
 
 
-void init_frames()
+void init_frames(void)
 {
   size_t i;
 
-  free_frames = calloc(NUMBER_OF_FRAMES, PAGE_SIZE);
-  assert(free_frames != NULL);
+  all_frames = calloc(NUMBER_OF_FRAMES, PAGE_SIZE);
+  assert(all_frames != NULL);
+  frames_metadata = calloc(NUMBER_OF_FRAMES, sizeof(struct frame_metadata));
+  assert(frames_metadata != NULL);
 
-  for (i=0; i<NUMBER_OF_FRAMES-1; i++)
-    *((void**) (&free_frames[i])) = (void*) &free_frames[i+1];
-  *((void**) (&free_frames[i])) = NULL;
+  for (i=0; i<NUMBER_OF_FRAMES; i++)
+  {
+    frames_metadata[i].address = (void*) &all_frames[i];
+    frames_metadata[i].next_free = i+1;
+    frames_metadata[i].refcount = 0;
+  }
+  /* fixing the next free frame for the last frame */
+  frames_metadata[i-1].next_free = INVALID_PAGE_NUMBER;
 }
 
 
-struct page_frame* allocate_frame()
+uint64_t pick_free_frame(void)
 {
-  struct page_frame* result;
-
-  if (free_frames != NULL)
-  {
-    result = &free_frames[0];
-    free_frames = *((void**) &free_frames[0]);
-  }
-  else
-  {
-    result = NULL;
-  }
-
-  return result;
+  return first_free;
 }
 
-
-void free_frame(struct page_frame* frame)
+void remove_allocated_page_from_free_list(pn_t frame_number)
 {
+  pn_t previous_frame;
+
+  if (first_free == frame_number)
+  {
+    first_free = frames_metadata[frame_number].next_free;
+    return;
+  }
+
+  // TODO: panic when reaching INVALID_PAGE_NUMBER
+  for (previous_frame = first_free; 
+       frames_metadata[previous_frame].next_free != frame_number;
+       previous_frame = frames_metadata[previous_frame].next_free);
+
+  frames_metadata[previous_frame].next_free = 
+    frames_metadata[frame_number].next_free;
+}
+
+struct page_frame* allocate_frame(pn_t frame_number)
+{
+  // TODO: check refcount to panic if something's wrong
+  /* Zeroing the freshly allocated frame */
   size_t i;
-  struct page_frame* travel = free_frames;
-
   for (i=0; i<PAGE_SIZE; i++)
-    frame->content[i] = 0;
+    all_frames[frame_number].content[i] = 0;
 
-  if (travel == NULL)
-  {
-    free_frames = frame;
-  }
-  else
-  {
-    while (*((void**) travel) != NULL)
-      travel = *((void**) travel);
-    *((void**) travel) = frame;
-  }
+  frames_metadata[frame_number].refcount = 1;
+  return &all_frames[frame_number];
+}
+
+void free_frame(pn_t frame_number)
+{
+
+  // TODO: check refcount to panic if something's wrong
+  frames_metadata[frame_number].next_free = first_free;
+  first_free = frame_number;
 }
