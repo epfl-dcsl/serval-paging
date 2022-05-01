@@ -5,6 +5,14 @@
 #include <stdint.h>
 
 typedef uint64_t pn_t;    /* page number */
+enum page_type {           /* page type */
+  PAGE_FREE,
+  PAGE_FRAME,
+  PAGE_L1_ENTRY,
+  PAGE_L2_ENTRY,
+  PAGE_L3_ENTRY,
+  PAGE_L4_ENTRY,
+};
 
 #define PAGE_SIZE 0x1000
 #define NUMBER_OF_FRAMES 0x10000
@@ -19,11 +27,12 @@ struct page_frame {
 };
 
 /*
- * Extra metadata to keep track of allocated page frames
+ * Extra metadata to keep track of allocated frames
  */
 struct frame_metadata {
   void* address;
   pn_t next_free; /* No proof is done on this as it represents a linked list */
+  enum page_type type;
   uint32_t refcount;
 };
 
@@ -33,24 +42,24 @@ struct frame_metadata {
 void init_frames(void);
 
 /*
- * Returns a frame number, supposedly a free one
+ * Returns a page number, supposedly a free one
  * This function is not proven and should only be used as an advice by
  * applications
  */
 pn_t pick_free_frame(void);
 
 /*
- * Function to allocate a frame
- * Returns the frame asked if it is available, NULL otherwise
+ * Function to allocate a page
+ * Returns the page asked if it is available, NULL otherwise
  */
-struct page_frame* allocate_frame(pn_t frame_number);
+void* allocate_frame(pn_t frame_number, enum page_type type);
 
 /* 
- * Function to call by a user to remove a freshly allocated page from the free
+ * Function to call by a user to remove a freshly allocated frame from the free
  * list
  * Because this function involves the free list, it cannot be proved
  */
-void remove_allocated_page_from_free_list(pn_t frame_number);
+void remove_allocated_frame_from_free_list(pn_t frame_number);
 
 /*
  * Function to free a frame

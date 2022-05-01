@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
   init_frames();
 
   pn_t frame_number = pick_free_frame();
-  allocate_frame(frame_number);
-  remove_allocated_page_from_free_list(frame_number);
+  allocate_frame(frame_number, PAGE_FRAME);
+  remove_allocated_frame_from_free_list(frame_number);
   free_frame(frame_number);
 }

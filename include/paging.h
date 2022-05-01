@@ -5,10 +5,12 @@
 #include "allocation.h"
 
 
+
 /*
  * Tags of a page (mainly access rights)
  */
 struct page_tags {
+  uint64_t refcount;
   int shareable;
 };
 
@@ -55,6 +57,21 @@ struct vm_area {
   struct vm_area_tags tags;
 };
 
+/* 
+ * Functions to map a frame to a given address
+ */
+int map_page_table_l3_entry(pn_t l4e, uint16_t l4_offset, pn_t l3e);
+int map_page_table_l2_entry(pn_t l3e, uint16_t l3_offset, pn_t l2e);
+int map_page_table_l1_entry(pn_t l2e, uint16_t l2_offset, pn_t l1e);
+int map_page_table_frame(pn_t l1e, uint16_t l1_offset, pn_t frame);
+
+/*
+ * Functions to unmap a frame from a given address
+ */
+int unmap_page_table_l3_entry(pn_t l4e, uint16_t l4_offset, pn_t l3e);
+int unmap_page_table_l2_entry(pn_t l3e, uint16_t l3_offset, pn_t l2e);
+int unmap_page_table_l1_entry(pn_t l2e, uint16_t l2_offset, pn_t l1e);
+int unmap_page_table_frame(pn_t l1e, uint16_t l1_offset, pn_t frame);
 
 
 
