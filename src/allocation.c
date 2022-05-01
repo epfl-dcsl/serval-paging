@@ -1,7 +1,4 @@
 #include "allocation.h"
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
 #include <strings.h>
 
 
