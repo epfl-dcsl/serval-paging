@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -pedantic
 DEBUG = -g
 CC = gcc
 INCLUDE = -Iinclude/
