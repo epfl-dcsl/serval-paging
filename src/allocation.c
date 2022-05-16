@@ -81,7 +81,10 @@ int allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions)
   if (frame_number >= NUMBER_OF_FRAMES)
     return 1;
   /* You can't allocate a page that is already allocated */
-  if (frames_metadata[frame_number].owner != 0)
+  if (frames_metadata[frame_number].type != PAGE_FREE)
+    return 1;
+  /* You can't allocate a page to keep it free */
+  if (type == PAGE_FREE)
     return 1;
 
   // TODO: check refcount to panic if something's wrong
