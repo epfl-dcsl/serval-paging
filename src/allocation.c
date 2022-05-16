@@ -75,14 +75,14 @@ void add_free_frame_to_free_list(pn_t frame_number)
   frames_metadata[frame_number].next_free = first_free;
 }
 
-void* allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions)
+int allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions)
 {
   /* You can't allocate a page that doesn't exist */
   if (frame_number >= NUMBER_OF_FRAMES)
-    return NULL;
+    return 1;
   /* You can't allocate a page that is already allocated */
   if (frames_metadata[frame_number].owner != 0)
-    return NULL;
+    return 1;
 
   // TODO: check refcount to panic if something's wrong
   /* Zeroing the freshly allocated frame */
@@ -95,7 +95,7 @@ void* allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions)
   frames_metadata[frame_number].permissions = permissions;
   frames_metadata[frame_number].type = type;
   frames_metadata[frame_number].owner = current;
-  return &all_frames[frame_number];
+  return 0;
 }
 
 int free_frame(pn_t frame_number)

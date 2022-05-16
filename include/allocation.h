@@ -64,7 +64,7 @@ pn_t pick_free_frame(void);
  * Function to allocate a page
  * Returns the page asked if it is available, NULL otherwise
  */
-void* allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions);
+int allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions);
 
 /* 
  * Function to call by a user to remove a freshly allocated frame from the free
