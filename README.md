@@ -43,7 +43,7 @@ RACO_TESTS      += $(wildcard racket/test/*.rkt)
 by
 
 ```
-RACO_TESTS      = racket/test/allocation.rkt
+override RACO_TESTS = racket/test/allocation.rkt
 ```
 
 Only one of the two failing tests from before should remain. Only other
