@@ -11,6 +11,7 @@ struct page_frame all_frames[NUMBER_OF_FRAMES];
  * This is the global array of metadata of all the frames of the system
  */
 struct frame_metadata frames_metadata[NUMBER_OF_FRAMES];
+struct frame_metadata fm;
 
 /*
  * This is the number of the first free page
@@ -21,7 +22,7 @@ pn_t first_free = 0;
 /*
  * This is the PID of the currently running process
  */
-pid_t current = 0;
+pid_t current;
 
 
 void init_frames(void)
@@ -39,6 +40,8 @@ void init_frames(void)
   }
   /* fixing the next free frame for the last frame */
   frames_metadata[i-1].next_free = INVALID_PAGE_NUMBER;
+
+  current = 0;
 }
 
 
@@ -83,15 +86,14 @@ int allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions)
   /* You can't allocate a page that is already allocated */
   if (frames_metadata[frame_number].type != PAGE_FREE)
     return 1;
-  /* You can't allocate a page to keep it free */
   if (type == PAGE_FREE)
     return 1;
 
   // TODO: check refcount to panic if something's wrong
   /* Zeroing the freshly allocated frame */
-  size_t i;
-  for (i=0; i<PAGE_SIZE; i++)
-    all_frames[frame_number].content[i] = 0;
+  //size_t i;
+  //for (i=0; i<PAGE_SIZE; i++)
+  //  all_frames[frame_number].content[i] = 0;
 
   frames_metadata[frame_number].refcount = 0;
   frames_metadata[frame_number].entry_count = 0;
