@@ -38,8 +38,9 @@
 			 (=> (equal? (mblock-iload b1 (list i 'type)) PAGE_FREE)
 			     (equal? (mblock-iload b1 (list i 'refcount)) (bv 0 32)))))))
 
-(define (check-allocation-spec)
+(define (check-allocation-spec-allocate)
   (parameterize ([current-machine (make-machine symbols globals)])
+    ; Verifying that the allocate_frame function does not violate the invariant
     (define-symbolic frame_number (bitvector PAGE_NUMBER_TYPE_SIZE))
     (define-symbolic type (bitvector PAGE_TYPE_SIZE))
     (define-symbolic permissions (bitvector 32))
@@ -53,11 +54,26 @@
     ; check if the invariant holds
     (check-unsat? (verify (assert (implies pre post))))))
 
+(define (check-allocation-spec-free)
+  (parameterize ([current-machine (make-machine symbols globals)])
+    ; Verifying that the free_frame function does not violate the invariant
+    (define-symbolic frame_number (bitvector PAGE_NUMBER_TYPE_SIZE))
+    (define pre (inv))
+    (define asserted
+      (with-asserts-only (@free_frame frame_number)))
+    (define post (inv))
+    ; no UB triggered
+    (for-each (lambda (x) (begin (pretty-print x) (check-unsat? (verify (assert x))))) (asserts))
+    (for-each (lambda (x) (check-unsat? (verify (assert x)))) asserted)
+    ; check if the invariant holds
+    (check-unsat? (verify (assert (implies pre post))))))
+
 (define allocation-tests
   (test-suite+
    "Tests for allocation.c"
 
-   (test-case+ "check-allocation-spec" (check-allocation-spec))))
+   (test-case+ "check-allocation-spec-allocate" (check-allocation-spec-allocate))
+   (test-case+ "check-allocation-spec-free" (check-allocation-spec-free))))
 
 (module+ test
   (time (run-tests allocation-tests)))

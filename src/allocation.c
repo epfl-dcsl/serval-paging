@@ -123,10 +123,10 @@ int free_frame(pn_t frame_number)
       return 1;
 
   frames_metadata[frame_number].type = PAGE_FREE;
-  frames_metadata[frame_number].refcount -= 1;
+  frames_metadata[frame_number].refcount = 0;
   frames_metadata[frame_number].permissions = 0;
   frames_metadata[frame_number].owner = 0;
-  frames_metadata[frame_number].type = PAGE_FREE;
+  frames_metadata[frame_number].entry_count = 0;
 
   return 0;
 }
