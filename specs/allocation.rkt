@@ -49,7 +49,7 @@
       (with-asserts-only (@allocate_frame frame_number type permissions)))
     (define post (inv))
     ; no UB triggered
-    (for-each (lambda (x) (begin (pretty-print x) (check-unsat? (verify (assert x))))) (asserts))
+    (for-each (lambda (x) (check-unsat? (verify (assert x)))) (asserts))
     (for-each (lambda (x) (check-unsat? (verify (assert x)))) asserted)
     ; check if the invariant holds
     (check-unsat? (verify (assert (implies pre post))))))
@@ -63,17 +63,34 @@
       (with-asserts-only (@free_frame frame_number)))
     (define post (inv))
     ; no UB triggered
-    (for-each (lambda (x) (begin (pretty-print x) (check-unsat? (verify (assert x))))) (asserts))
+    (for-each (lambda (x) (check-unsat? (verify (assert x)))) (asserts))
     (for-each (lambda (x) (check-unsat? (verify (assert x)))) asserted)
     ; check if the invariant holds
     (check-unsat? (verify (assert (implies pre post))))))
+
+; Because of the long loop in init_frames, this function takes forever
+; For a small number of pages, this function works
+;(define (check-allocation-spec-init)
+;  (parameterize ([current-machine (make-machine symbols globals)])
+;    ; Verifying that the init_frames function leaves the array in a state that verifies the invariant
+;    (define pre #t)
+;    (define asserted
+;      (with-asserts-only (@init_frames)))
+;    (define post (inv))
+;    ; no UB triggered
+;    (for-each (lambda (x) (check-unsat? (verify (assert x)))) (asserts))
+;    (for-each (lambda (x) (check-unsat? (verify (assert x)))) asserted)
+;    ; check if the invariant holds
+;    (check-unsat? (verify (assert (implies pre post))))))
 
 (define allocation-tests
   (test-suite+
    "Tests for allocation.c"
 
    (test-case+ "check-allocation-spec-allocate" (check-allocation-spec-allocate))
-   (test-case+ "check-allocation-spec-free" (check-allocation-spec-free))))
+   (test-case+ "check-allocation-spec-free" (check-allocation-spec-free))
+   ;(test-case+ "check-allocation-spec-init" (check-allocation-spec-init))
+   ))
 
 (module+ test
   (time (run-tests allocation-tests)))
