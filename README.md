@@ -24,7 +24,7 @@ Then, from inside the Serval container :
 ```
 cp /usr/riscv64-linux-gnu/include/gnu/stubs-lp64d.h /usr/riscv64-linux-gnu/include/gnu/stubs-lp64.h
 cd /serval/racket/test/
-cp servaled-paging/{src/allocation.c,include/allocation.h,specs/allocation.rkt} .
+cp servaled-paging/{src/all.c,include/all.h,specs/all.rkt} .
 make -C ../../ raco-test
 ```
 
@@ -43,11 +43,11 @@ RACO_TESTS      += $(wildcard racket/test/*.rkt)
 by
 
 ```
-override RACO_TESTS = racket/test/allocation.rkt
+override RACO_TESTS = racket/test/all.rkt
 ```
 
-Only one of the two failing tests from before should remain. Only other
-errors come from 
+With only the tests of the allocation/paging library remaining, all tests
+should pass. Otherwise send me an email.
 
 
 ## Directory structure

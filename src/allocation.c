@@ -24,13 +24,22 @@ pn_t first_free = 0;
  */
 pid_t current;
 
+/*
+ * This is a mapping from a PID to its address space, aka CR3 aka page table
+ * root
+ */
+pn_t address_space_mapping[NUMBER_OF_USERS];
 
-void init_frames(void)
+
+int init_frames(void)
 {
   size_t i;
+  pn_t toplev;
 
+  // initializing the frames metadata
   for (i=0; i<NUMBER_OF_FRAMES; i++)
   {
+    frames_metadata[i].address = (uint64_t) &all_frames[i];
     frames_metadata[i].next_free = i+1;
     frames_metadata[i].type = PAGE_FREE;
     frames_metadata[i].refcount = 0;
@@ -38,38 +47,50 @@ void init_frames(void)
     frames_metadata[i].owner = 0;
     frames_metadata[i].entry_count = 0;
   }
+  // initializing users' address space mappings
+  for (i=0; i<NUMBER_OF_USERS; i++)
+  {
+    current = i;
+    toplev = pick_free_frame();
+    if (toplev == INVALID_PAGE_NUMBER)
+      return 1;
+    if (allocate_frame(toplev, PAGE_L4_ENTRY, 0) != 0)
+      return 1;
+    address_space_mapping[i] = toplev;
+  }
   /* fixing the next free frame for the last frame */
   frames_metadata[i-1].next_free = INVALID_PAGE_NUMBER;
 
   current = 0;
+
+  return 0;
 }
 
 
-uint64_t pick_free_frame(void)
+pn_t pick_free_frame(void)
 {
-  return first_free;
-}
+  pn_t frame_number = first_free;
 
-void remove_allocated_frame_from_free_list(pn_t frame_number)
-{
   if (frame_number >= NUMBER_OF_FRAMES)
-    return;
+    return INVALID_PAGE_NUMBER;
 
   pn_t previous_frame;
 
   if (first_free == frame_number)
   {
     first_free = frames_metadata[frame_number].next_free;
-    return;
+    return frame_number;
   }
 
   // TODO: panic when reaching INVALID_PAGE_NUMBER
-  for (previous_frame = first_free; 
+  for (previous_frame = first_free;
        frames_metadata[previous_frame].next_free != frame_number;
        previous_frame = frames_metadata[previous_frame].next_free);
 
-  frames_metadata[previous_frame].next_free = 
+  frames_metadata[previous_frame].next_free =
     frames_metadata[frame_number].next_free;
+
+  return frame_number;
 }
 
 void add_free_frame_to_free_list(pn_t frame_number)
@@ -88,12 +109,6 @@ int allocate_frame(pn_t frame_number, page_type_t type, uint32_t permissions)
     return 1;
   if (type == PAGE_FREE)
     return 1;
-
-  // TODO: check refcount to panic if something's wrong
-  /* Zeroing the freshly allocated frame */
-  //size_t i;
-  //for (i=0; i<PAGE_SIZE; i++)
-  //  all_frames[frame_number].content[i] = 0;
 
   frames_metadata[frame_number].refcount = 0;
   frames_metadata[frame_number].entry_count = 0;
